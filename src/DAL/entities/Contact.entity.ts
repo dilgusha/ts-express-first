@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { IsEmail, IsEnum, IsOptional, Length } from "class-validator";
+import { BaseEntity, Column, CreateDateColumn, DeleteDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { User } from "./User.entity";
 
 export enum EInquiryType {
     PARTNERSHIP = "PARTNERSHIP",
@@ -7,17 +9,20 @@ export enum EInquiryType {
 }
 
 @Entity({ name: "contacts" })
-export class Contact {
+export class Contact extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column({ type: "varchar", length: 150 })
+    @Length(3,50)
     name: string;
 
     @Column({ type: "varchar", length: 150 })
+    @IsOptional()
     surname: string;
 
     @Column({ type: "varchar", length: 150, unique: true })
+    @IsEmail()
     email: string;
 
     @Column({ type: "varchar", length: 150 })
@@ -28,6 +33,8 @@ export class Contact {
         enum: EInquiryType,
         default: EInquiryType.GENERAL,
     })
+    @IsOptional()
+    @IsEnum(EInquiryType)
     inquiryType: EInquiryType;
 
     @Column({ type: "text" })
@@ -41,4 +48,8 @@ export class Contact {
 
     @DeleteDateColumn({ type: "datetime", nullable: true })
     deleted_at: Date;
+
+
+    @ManyToOne(()=>User,(user)=>user.contacts,{onDelete:"CASCADE"})
+    user:User
 }

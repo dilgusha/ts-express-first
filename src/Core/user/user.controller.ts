@@ -1,43 +1,40 @@
-import { Request, Response } from "express";
-import { AppDataSource } from "../../DAL/config/db";
-import { User } from "../../DAL/entities/User.entity";
-import { plainToInstance } from "class-transformer";
+import { NextFunction, Request, Response } from "express";
 import { validate } from "class-validator";
-import { CreateUserDto } from "./dto/create-user.dto";
+import { User } from "../../DAL/entities/User.entity";
 
-export class UserController {
-  static async createUser(req: Request, res: Response): Promise<Response> {
-    try {
-      const dto = plainToInstance(CreateUserDto, req.body);
+const Register = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { firstName, lastName, email } = req.body;
 
-      const errors = await validate(dto);
-      if (errors.length > 0) {
-        const formattedErrors = errors.map((error) => ({
+    const user = await User.findOne({ where: {email:email} });
+    if (user) return next(res.json("Bu emaile uygun user artiq movcuddur"));
+
+    const newUser = User.create({
+      firstName,
+      lastName,
+      email,
+    });
+
+    const errors = await validate(newUser);
+
+    if (errors.length > 0) {
+      res.status(400).json({
+        message: "Validation failed",
+        errors: errors.map((error) => ({
           property: error.property,
           constraints: error.constraints,
-        }));
-
-        return res.status(400).json({
-          message: "Validation failed",
-          errors: formattedErrors,
-        });
-      }
-
-      const userRepository = AppDataSource.getRepository(User);
-      const user = userRepository.create(dto);
-      await userRepository.save(user);
-
-      return res.status(201).json({
-        message: "User created successfully",
-        data: user,
+        })),
       });
-    } catch (error) {
-      console.error("Error while creating user:", error);
-
-      return res.status(500).json({
-        message: "An error occurred while creating the user",
-        error: error instanceof Error ? error.message : error,
-      });
+    } else {
+      const savedUser = await newUser.save();
+      res.status(201).json(savedUser);
     }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Internal server error" });
   }
-}
+};
+
+export const UserController = () => ({
+  Register,
+});
