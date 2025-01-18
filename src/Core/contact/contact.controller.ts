@@ -73,15 +73,27 @@ export class ContactController {
       })
       const errors = await validate(contact);
 
+      
       if (errors.length > 0) {
         return res.status(400).json({
           message: "Validation failed",
-          errors: errors.map((error) => ({
-            property: error.property,
-            constraints: error.constraints,
-          })),
+          errors: errors.reduce((acc: Record<string, string[]>, error: any) => {
+            acc[error.property] = Object.values(error.constraints) as string[];
+            return acc;
+          }, {}),
         });
-      }
+      } 
+      
+      // if (errors.length > 0) {
+      //   return res.status(400).json({
+      //     message: "Validation failed",
+      //     errors: errors.map((item,error) => ({
+      //       // property: error.property,
+      //       // constraints: error.constraints,
+      //       errors:[item.property, item.constraints]
+      //     })),
+      //   });
+      // }
       const savedContact = await contact.save();
 
 

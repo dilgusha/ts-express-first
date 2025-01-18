@@ -5,7 +5,7 @@ export class CreateContactDto {
   @Length(2, 50, { message: "Name must be between 2 and 50 characters" })
   name: string;
 
-  @IsNotEmpty({ message: "Surname is required" })
+  @IsNotEmpty()
   @Length(2, 50, { message: "Surname must be between 2 and 50 characters" })
   surname: string;
 

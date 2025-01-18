@@ -50,6 +50,6 @@ export class Contact extends BaseEntity {
     deleted_at: Date;
 
 
-    @ManyToOne(()=>User,(user)=>user.contacts,{onDelete:"CASCADE"})
+    @ManyToOne(()=>User,(user)=>user.contacts)
     user:User
 }
